@@ -8,16 +8,22 @@ class Game {
     this.turns = [this.turn]
     this.players = {}
     this.sockets = []
+    this.begin = false
+    this.nPlayers = 0
+    this.alives = 0
   }
 
   onPlayerJoin (socket) {
-    let bikeId = 0
-    while (this.sockets[bikeId] != null ||
-      this.turn.inputs[bikeId] != null) ++bikeId
-    this.sockets[bikeId] = socket
-    this.players[socket.id] = bikeId
-    this.turn.addPlayer(bikeId)
-    this.sendState()
+    if ((this.turns.length < 2) || (this.alives < this.nPlayers)) {
+      let bikeId = 0
+      while (this.sockets[bikeId] != null ||
+        this.turn.inputs[bikeId] != null) ++bikeId
+      this.sockets[bikeId] = socket
+      this.players[socket.id] = bikeId
+      this.turn.addPlayer(bikeId)
+      this.sendState()
+      this.nPlayers++
+    }
   }
 
   onChangeDir (socket, dir) {
@@ -31,13 +37,19 @@ class Game {
 
     delete this.players[socket.id]
     this.sockets[bikeId] = null
+    this.nPlayers--
   }
 
   tick () {
-    const nextTurn = this.turn.evolve()
-    this.turns.push(nextTurn)
-    this.turn = nextTurn
-    this.sendState()
+    // this.alives = (this.turn.bikes.filter(function (bike) { return bike.alive })).length
+    this.alives = this.turn.bikes.filter((bike) => bike.alive).length
+    if ((this.nPlayers >= 3) || (this.begin && (this.alives > 1))) {
+      const nextTurn = this.turn.evolve()
+      this.turns.push(nextTurn)
+      this.turn = nextTurn
+      this.sendState()
+      this.begin = true
+    }
   }
 
   sendState () {
