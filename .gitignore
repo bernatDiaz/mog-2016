@@ -1,3 +1,7 @@
 node_modules
 npm-debug.log
+<<<<<<< HEAD
 dist/bundle.js
+=======
+bundle.js
+>>>>>>> 2d353a0a88582d7ff40c628180d4e2cc6a4eff70
